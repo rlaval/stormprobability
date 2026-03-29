@@ -48,7 +48,7 @@ ${createDay(3,"J+3")}
 
 <button class="meteo-btn" onclick="meteoGenerate()">📥 Télécharger l'image</button>
 
-<canvas id="meteo-final" width="1100" height="600" style="display:none;"></canvas>
+<canvas id="meteo-final" width="1150" height="600" style="display:none;"></canvas>
 
 </div>
 `;
@@ -111,7 +111,7 @@ const cols=["red","green","blue","orange"];
 vals.forEach((v,i)=>{
 if(v===0)return;
 let yT=350-(v*3);
-let off=240+(i*35);
+let off=240+(i*40); // espacement un peu plus large
 
 ctx.beginPath();
 for(let t=0;t<=1;t+=0.03){
@@ -120,6 +120,7 @@ let x=off - t*(off-60)+Math.sin(t*Math.PI)*25;
 t===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
 }
 ctx.strokeStyle=cols[i];
+ctx.lineWidth = 1.5;
 ctx.stroke();
 
 ctx.beginPath();
@@ -136,6 +137,7 @@ ctx.fillText("Risque nul", c.width/2,180);
 // TEXTE
 ctx.textAlign="left";
 ctx.fillStyle="black";
+ctx.font="12px Arial";
 ctx.fillText(date||"Date non définie",120,20);
 
 const today = new Date().toLocaleDateString("fr-FR");
@@ -149,12 +151,14 @@ let yL=380;
 ctx.fillStyle=["red","green","blue","orange"][i];
 ctx.fillRect(20+i*80,yL,10,10);
 ctx.fillStyle="black";
+ctx.font="10px Arial";
 ctx.fillText(t,35+i*80,yL+10);
 });
 
 // SYNTHÈSE
 let r=Math.round(orages*0.4+grele*0.3+pluie*0.15+vent*0.15);
 ctx.font="10px Courier New";
+ctx.fillStyle="black";
 ctx.fillText("Risque : "+r+"%",20,yL+30);
 
 }
@@ -165,11 +169,18 @@ window.meteoGenerate = function(){
 const final=document.getElementById("meteo-final");
 const ctx=final.getContext("2d");
 
-ctx.clearRect(0,0,1100,600);
+ctx.clearRect(0,0,1150,600);
 
+const titles=["J+1","J+2","J+3"];
 [1,2,3].forEach((id,i)=>{
 let c=document.getElementById("canvas"+id);
-ctx.drawImage(c,i*370,20);
+ctx.drawImage(c,i*370,40); // légèrement plus bas pour laisser place au titre
+
+// TITRE EN HAUT DE CHAQUE GRAPHIQUE
+ctx.fillStyle="black";
+ctx.font="bold 16px Arial";
+ctx.textAlign="center";
+ctx.fillText(titles[i], i*370 + 175, 20); // centré au-dessus du graphique
 });
 
 const link=document.createElement("a");
