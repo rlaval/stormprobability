@@ -61,7 +61,6 @@ return `
 <input type="date" id="date${id}">
 <input type="number" id="orages${id}" placeholder="Orages %">
 <input type="number" id="grele${id}" placeholder="Grêle %">
-<input type="number" id="pluie${id}" placeholder="Pluie %">
 <input type="number" id="vent${id}" placeholder="Vent %">
 
 <button class="meteo-btn" onclick="meteoDraw(${id})">Générer</button>
@@ -78,7 +77,6 @@ const ctx = c.getContext("2d");
 
 const orages = +document.getElementById("orages"+id).value||0;
 const grele = +document.getElementById("grele"+id).value||0;
-const pluie = +document.getElementById("pluie"+id).value||0;
 const vent = +document.getElementById("vent"+id).value||0;
 
 const date = document.getElementById("date"+id).value;
@@ -101,17 +99,17 @@ ctx.lineTo(60,y);
 ctx.stroke();
 }
 
-const isZero = (orages+grele+pluie+vent===0);
+const isZero = (orages+grele+vent===0);
 
 // COURBES
 if(!isZero){
-const vals=[orages,grele,pluie,vent];
-const cols=["red","green","blue","orange"];
+const vals=[orages,grele,vent];
+const cols=["red","green","orange"];
 
 vals.forEach((v,i)=>{
 if(v===0)return;
 let yT=350-(v*3);
-let off=240+(i*40); // espacement un peu plus large
+let off=240+(i*40);
 
 ctx.beginPath();
 for(let t=0;t<=1;t+=0.03){
@@ -147,8 +145,8 @@ ctx.fillText("MeteoAveyron - Indicateur global",120,50);
 
 // LEGENDE
 let yL=380;
-["Orages","Grêle","Pluie","Vent"].forEach((t,i)=>{
-ctx.fillStyle=["red","green","blue","orange"][i];
+["Orages","Grêle","Vent"].forEach((t,i)=>{
+ctx.fillStyle=["red","green","orange"][i];
 ctx.fillRect(20+i*80,yL,10,10);
 ctx.fillStyle="black";
 ctx.font="10px Arial";
@@ -156,7 +154,7 @@ ctx.fillText(t,35+i*80,yL+10);
 });
 
 // SYNTHÈSE
-let r=Math.round(orages*0.4+grele*0.3+pluie*0.15+vent*0.15);
+let r=Math.round(orages*0.5+grele*0.3+vent*0.2);
 ctx.font="10px Courier New";
 ctx.fillStyle="black";
 ctx.fillText("Risque : "+r+"%",20,yL+30);
@@ -174,13 +172,12 @@ ctx.clearRect(0,0,1150,600);
 const titles=["J+1","J+2","J+3"];
 [1,2,3].forEach((id,i)=>{
 let c=document.getElementById("canvas"+id);
-ctx.drawImage(c,i*370,40); // légèrement plus bas pour laisser place au titre
+ctx.drawImage(c,i*370,40);
 
-// TITRE EN HAUT DE CHAQUE GRAPHIQUE
 ctx.fillStyle="black";
 ctx.font="bold 16px Arial";
 ctx.textAlign="center";
-ctx.fillText(titles[i], i*370 + 175, 20); // centré au-dessus du graphique
+ctx.fillText(titles[i], i*370 + 175, 20);
 });
 
 const link=document.createElement("a");
