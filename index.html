@@ -1,0 +1,183 @@
+<div id="meteo-orage-tool"></div>
+
+<script>
+(function(){
+
+const container = document.getElementById("meteo-orage-tool");
+
+container.innerHTML = `
+<style>
+.meteo-container {
+  font-family: Arial;
+  max-width: 1000px;
+  margin:auto;
+}
+
+.meteo-day {
+  background:white;
+  padding:15px;
+  margin-bottom:20px;
+  border-radius:10px;
+  box-shadow:0 0 8px rgba(0,0,0,0.1);
+}
+
+.meteo-day canvas {
+  border:1px solid black;
+  margin-top:10px;
+}
+
+.meteo-day input {
+  width:100%;
+  margin-bottom:8px;
+}
+
+.meteo-btn {
+  padding:8px;
+  cursor:pointer;
+  width:100%;
+}
+</style>
+
+<div class="meteo-container">
+
+<h3>Prévision du risque orageux sur 3 jours</h3>
+
+${createDay(1,"J+1")}
+${createDay(2,"J+2")}
+${createDay(3,"J+3")}
+
+<button class="meteo-btn" onclick="meteoGenerate()">📥 Télécharger l'image</button>
+
+<canvas id="meteo-final" width="1100" height="600" style="display:none;"></canvas>
+
+</div>
+`;
+
+function createDay(id,label){
+return `
+<div class="meteo-day">
+<b>${label}</b><br>
+
+<input type="date" id="date${id}">
+<input type="number" id="orages${id}" placeholder="Orages %">
+<input type="number" id="grele${id}" placeholder="Grêle %">
+<input type="number" id="pluie${id}" placeholder="Pluie %">
+<input type="number" id="vent${id}" placeholder="Vent %">
+
+<button class="meteo-btn" onclick="meteoDraw(${id})">Générer</button>
+
+<canvas id="canvas${id}" width="350" height="520"></canvas>
+</div>`;
+}
+
+// DRAW
+window.meteoDraw = function(id){
+
+const c = document.getElementById("canvas"+id);
+const ctx = c.getContext("2d");
+
+const orages = +document.getElementById("orages"+id).value||0;
+const grele = +document.getElementById("grele"+id).value||0;
+const pluie = +document.getElementById("pluie"+id).value||0;
+const vent = +document.getElementById("vent"+id).value||0;
+
+const date = document.getElementById("date"+id).value;
+
+ctx.clearRect(0,0,c.width,c.height);
+
+// AXE
+ctx.beginPath();
+ctx.moveTo(60,350);
+ctx.lineTo(60,50);
+ctx.stroke();
+
+// GRADUATION
+for(let i=0;i<=100;i+=10){
+let y=350-(i*3);
+ctx.fillText(i+"%",15,y);
+ctx.beginPath();
+ctx.moveTo(55,y);
+ctx.lineTo(60,y);
+ctx.stroke();
+}
+
+const isZero = (orages+grele+pluie+vent===0);
+
+// COURBES
+if(!isZero){
+const vals=[orages,grele,pluie,vent];
+const cols=["red","green","blue","orange"];
+
+vals.forEach((v,i)=>{
+if(v===0)return;
+let yT=350-(v*3);
+let off=240+(i*35);
+
+ctx.beginPath();
+for(let t=0;t<=1;t+=0.03){
+let y=350-t*(350-yT);
+let x=off - t*(off-60)+Math.sin(t*Math.PI)*25;
+t===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+}
+ctx.strokeStyle=cols[i];
+ctx.stroke();
+
+ctx.beginPath();
+ctx.arc(60,yT,3,0,6.28);
+ctx.fillStyle=cols[i];
+ctx.fill();
+});
+}else{
+ctx.fillStyle="green";
+ctx.textAlign="center";
+ctx.fillText("Risque nul", c.width/2,180);
+}
+
+// TEXTE
+ctx.textAlign="left";
+ctx.fillStyle="black";
+ctx.fillText(date||"Date non définie",120,20);
+
+const today = new Date().toLocaleDateString("fr-FR");
+ctx.font="10px Arial";
+ctx.fillText("Mise à jour : "+today,120,35);
+ctx.fillText("MeteoAveyron - Indicateur global",120,50);
+
+// LEGENDE
+let yL=380;
+["Orages","Grêle","Pluie","Vent"].forEach((t,i)=>{
+ctx.fillStyle=["red","green","blue","orange"][i];
+ctx.fillRect(20+i*80,yL,10,10);
+ctx.fillStyle="black";
+ctx.fillText(t,35+i*80,yL+10);
+});
+
+// SYNTHÈSE
+let r=Math.round(orages*0.4+grele*0.3+pluie*0.15+vent*0.15);
+ctx.font="10px Courier New";
+ctx.fillText("Risque : "+r+"%",20,yL+30);
+
+}
+
+// EXPORT
+window.meteoGenerate = function(){
+
+const final=document.getElementById("meteo-final");
+const ctx=final.getContext("2d");
+
+ctx.clearRect(0,0,1100,600);
+
+[1,2,3].forEach((id,i)=>{
+let c=document.getElementById("canvas"+id);
+ctx.drawImage(c,i*370,20);
+});
+
+const link=document.createElement("a");
+link.download="meteo.png";
+link.href=final.toDataURL();
+link.click();
+
+}
+
+})();
+</script>
