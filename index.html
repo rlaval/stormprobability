@@ -69,6 +69,17 @@ return `
 </div>`;
 }
 
+// FORMAT DATE (AJOUTÉ)
+function formatDateFR(dateStr){
+if(!dateStr) return "Date non définie";
+const d = new Date(dateStr);
+return d.toLocaleDateString("fr-FR", {
+weekday: "long",
+day: "numeric",
+month: "long"
+});
+}
+
 // DRAW
 window.meteoDraw = function(id){
 
@@ -136,7 +147,7 @@ ctx.fillText("Risque nul", c.width/2,180);
 ctx.textAlign="left";
 ctx.fillStyle="black";
 ctx.font="12px Arial";
-ctx.fillText(date||"Date non définie",120,20);
+ctx.fillText(formatDateFR(date),120,20); // MODIFIÉ ICI
 
 const today = new Date().toLocaleDateString("fr-FR");
 ctx.font="10px Arial";
