@@ -7,193 +7,224 @@ const container = document.getElementById("meteo-orage-tool");
 
 container.innerHTML = `
 <style>
-.meteo-container {
-  font-family: Arial;
-  max-width: 1000px;
-  margin:auto;
+
+.meteo-container{
+    font-family:Arial;
+    max-width:1100px;
+    margin:auto;
 }
 
-.meteo-day {
-  background:white;
-  padding:15px;
-  margin-bottom:20px;
-  border-radius:10px;
-  box-shadow:0 0 8px rgba(0,0,0,0.1);
+.meteo-day{
+    background:white;
+    padding:15px;
+    margin-bottom:20px;
+    border-radius:12px;
+    box-shadow:0 0 8px rgba(0,0,0,0.1);
 }
 
-.meteo-day canvas {
-  border:1px solid black;
-  margin-top:10px;
+.meteo-day input{
+    width:100%;
+    padding:8px;
+    margin-bottom:8px;
+    box-sizing:border-box;
 }
 
-.meteo-day input {
-  width:100%;
-  margin-bottom:8px;
+.meteo-btn{
+    width:100%;
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    background:#1565c0;
+    color:white;
+    cursor:pointer;
+    font-weight:bold;
 }
 
-.meteo-btn {
-  padding:8px;
-  cursor:pointer;
-  width:100%;
+.meteo-btn:hover{
+    background:#0d47a1;
 }
+
+.meteo-day canvas{
+    margin-top:10px;
+    border:1px solid #ccc;
+    border-radius:10px;
+}
+
 </style>
 
 <div class="meteo-container">
 
-<h3>Prévision du risque orageux sur 3 jours</h3>
+<h2>⛈️ Bulletin risque orageux</h2>
 
 ${createDay(1,"J+1")}
 ${createDay(2,"J+2")}
 ${createDay(3,"J+3")}
 
-<button class="meteo-btn" onclick="meteoGenerate()">📥 Télécharger l'image</button>
+<button class="meteo-btn" onclick="meteoGenerate()">
+📥 Télécharger le bulletin
+</button>
 
-<canvas id="meteo-final" width="1150" height="600" style="display:none;"></canvas>
+<canvas id="meteo-final" width="1150" height="620" style="display:none;"></canvas>
 
 </div>
 `;
 
 function createDay(id,label){
+
 return `
 <div class="meteo-day">
-<b>${label}</b><br>
+
+<h3>${label}</h3>
 
 <input type="date" id="date${id}">
-<input type="number" id="orages${id}" placeholder="Orages %">
-<input type="number" id="grele${id}" placeholder="Grêle %">
-<input type="number" id="vent${id}" placeholder="Vent %">
 
-<button class="meteo-btn" onclick="meteoDraw(${id})">Générer</button>
+<input type="number" id="orages${id}" placeholder="Orages (%)">
+
+<input type="number" id="grele${id}" placeholder="Grêle (%)">
+
+<input type="number" id="vent${id}" placeholder="Vent violent (%)">
+
+<button class="meteo-btn" onclick="meteoDraw(${id})">
+Générer le bulletin
+</button>
 
 <canvas id="canvas${id}" width="350" height="520"></canvas>
-</div>`;
+
+</div>
+`;
 }
 
-// FORMAT DATE (AJOUTÉ)
+function getColor(value){
+
+if(value < 20) return "#43a047";
+if(value < 40) return "#c0ca33";
+if(value < 60) return "#fb8c00";
+if(value < 80) return "#e53935";
+
+return "#8e24aa";
+}
+
+function getRiskText(v){
+
+if(v < 20) return "Situation calme";
+if(v < 40) return "Risque faible";
+if(v < 60) return "Risque modéré";
+if(v < 80) return "Risque élevé";
+
+return "Risque sévère";
+}
+
+function drawBar(ctx,x,y,width,height,value,label,emoji){
+
+ctx.fillStyle="#e0e0e0";
+ctx.fillRect(x,y,width,height);
+
+ctx.fillStyle=getColor(value);
+ctx.fillRect(x,y,(width*value)/100,height);
+
+ctx.strokeStyle="#999";
+ctx.strokeRect(x,y,width,height);
+
+ctx.fillStyle="black";
+ctx.font="bold 14px Arial";
+ctx.fillText(emoji+" "+label, x, y-8);
+
+ctx.font="bold 13px Arial";
+ctx.fillText(value+"%", x+width-45, y+18);
+
+}
+
 function formatDateFR(dateStr){
+
 if(!dateStr) return "Date non définie";
+
 const d = new Date(dateStr);
-return d.toLocaleDateString("fr-FR", {
-weekday: "long",
-day: "numeric",
-month: "long"
+
+return d.toLocaleDateString("fr-FR",{
+weekday:"long",
+day:"numeric",
+month:"long"
 });
+
 }
 
-// DRAW
 window.meteoDraw = function(id){
 
 const c = document.getElementById("canvas"+id);
 const ctx = c.getContext("2d");
 
-const orages = +document.getElementById("orages"+id).value||0;
-const grele = +document.getElementById("grele"+id).value||0;
-const vent = +document.getElementById("vent"+id).value||0;
+ctx.clearRect(0,0,c.width,c.height);
+
+const orages = +document.getElementById("orages"+id).value || 0;
+const grele = +document.getElementById("grele"+id).value || 0;
+const vent = +document.getElementById("vent"+id).value || 0;
 
 const date = document.getElementById("date"+id).value;
 
-ctx.clearRect(0,0,c.width,c.height);
+const risk = Math.round(
+(orages*0.5)+(grele*0.3)+(vent*0.2)
+);
 
-// AXE
-ctx.beginPath();
-ctx.moveTo(60,350);
-ctx.lineTo(60,50);
-ctx.stroke();
+ctx.fillStyle="white";
+ctx.fillRect(0,0,c.width,c.height);
 
-// GRADUATION
-for(let i=0;i<=100;i+=10){
-let y=350-(i*3);
-ctx.fillText(i+"%",15,y);
-ctx.beginPath();
-ctx.moveTo(55,y);
-ctx.lineTo(60,y);
-ctx.stroke();
-}
+ctx.fillStyle="#111";
+ctx.font="bold 22px Arial";
+ctx.fillText("⛈️ Risque orageux",70,40);
 
-const isZero = (orages+grele+vent===0);
+ctx.font="14px Arial";
+ctx.fillStyle="#444";
+ctx.fillText(formatDateFR(date),70,65);
 
-// COURBES
-if(!isZero){
-const vals=[orages,grele,vent];
-const cols=["red","green","orange"];
+ctx.fillStyle="#999";
+ctx.font="11px Arial";
+ctx.fillText("MeteoAveyron • Bulletin trois jours",70,85);
 
-vals.forEach((v,i)=>{
-if(v===0)return;
-let yT=350-(v*3);
-let off=240+(i*40);
+drawBar(ctx,40,140,260,26,orages,"Orages","☈");
+drawBar(ctx,40,220,260,26,grele,"Grêle","☄");
+drawBar(ctx,40,300,260,26,vent,"Vent violent","༄");
 
-ctx.beginPath();
-for(let t=0;t<=1;t+=0.03){
-let y=350-t*(350-yT);
-let x=off - t*(off-60)+Math.sin(t*Math.PI)*25;
-t===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
-}
-ctx.strokeStyle=cols[i];
-ctx.lineWidth = 1.5;
-ctx.stroke();
+ctx.fillStyle=getColor(risk);
+ctx.fillRect(40,390,260,60);
 
-ctx.beginPath();
-ctx.arc(60,yT,3,0,6.28);
-ctx.fillStyle=cols[i];
-ctx.fill();
-});
-}else{
-ctx.fillStyle="green";
-ctx.textAlign="center";
-ctx.fillText("Risque nul", c.width/2,180);
-}
+ctx.fillStyle="white";
+ctx.font="bold 22px Arial";
+ctx.fillText("Risque global : "+risk+"%",55,425);
 
-// TEXTE
-ctx.textAlign="left";
-ctx.fillStyle="black";
-ctx.font="12px Arial";
-ctx.fillText(formatDateFR(date),120,20); // MODIFIÉ ICI
+ctx.font="bold 14px Arial";
+ctx.fillText(getRiskText(risk),55,445);
 
-const today = new Date().toLocaleDateString("fr-FR");
-ctx.font="10px Arial";
-ctx.fillText("Mise à jour : "+today,120,35);
-ctx.fillText("MeteoAveyron - Indicateur global",120,50);
-
-// LEGENDE
-let yL=380;
-["Orages","Grêle","Vent"].forEach((t,i)=>{
-ctx.fillStyle=["red","green","orange"][i];
-ctx.fillRect(20+i*80,yL,10,10);
-ctx.fillStyle="black";
-ctx.font="10px Arial";
-ctx.fillText(t,35+i*80,yL+10);
-});
-
-// SYNTHÈSE
-let r=Math.round(orages*0.5+grele*0.3+vent*0.2);
-ctx.font="10px Courier New";
-ctx.fillStyle="black";
-ctx.fillText("Risque : "+r+"%",20,yL+30);
+ctx.strokeStyle="#ddd";
+ctx.strokeRect(0,0,c.width,c.height);
 
 }
 
-// EXPORT
 window.meteoGenerate = function(){
 
-const final=document.getElementById("meteo-final");
-const ctx=final.getContext("2d");
+const final = document.getElementById("meteo-final");
+const ctx = final.getContext("2d");
 
-ctx.clearRect(0,0,1150,600);
+ctx.fillStyle="white";
+ctx.fillRect(0,0,1150,620);
 
-const titles=["J+1","J+2","J+3"];
 [1,2,3].forEach((id,i)=>{
-let c=document.getElementById("canvas"+id);
-ctx.drawImage(c,i*370,40);
+
+const c = document.getElementById("canvas"+id);
+
+ctx.drawImage(c, i*380 + 5, 40);
 
 ctx.fillStyle="black";
-ctx.font="bold 16px Arial";
+ctx.font="bold 18px Arial";
 ctx.textAlign="center";
-ctx.fillText(titles[i], i*370 + 175, 20);
+ctx.fillText("J+"+id, i*380 + 180, 25);
+
 });
 
-const link=document.createElement("a");
-link.download="meteo.png";
-link.href=final.toDataURL();
+const link = document.createElement("a");
+
+link.download = "bulletin-risque-orageux.png";
+link.href = final.toDataURL();
+
 link.click();
 
 }
