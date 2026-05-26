@@ -116,21 +116,22 @@ return "Risque sévère";
 
 function drawBar(ctx,x,y,width,height,value,label,emoji){
 
-ctx.fillStyle="#e0e0e0";
+ctx.fillStyle="#ececec";
 ctx.fillRect(x,y,width,height);
 
 ctx.fillStyle=getColor(value);
 ctx.fillRect(x,y,(width*value)/100,height);
 
-ctx.strokeStyle="#999";
+ctx.strokeStyle="#cfcfcf";
+ctx.lineWidth=0.8;
 ctx.strokeRect(x,y,width,height);
 
-ctx.fillStyle="black";
-ctx.font="bold 14px Arial";
-ctx.fillText(emoji+" "+label, x, y-8);
+ctx.fillStyle="#222";
+ctx.font="600 12px Arial";
+ctx.fillText(emoji+" "+label, x, y-7);
 
-ctx.font="bold 13px Arial";
-ctx.fillText(value+"%", x+width-45, y+18);
+ctx.font="600 11px Arial";
+ctx.fillText(value+"%", x+width-38, y+14);
 
 }
 
@@ -169,32 +170,33 @@ ctx.fillStyle="white";
 ctx.fillRect(0,0,c.width,c.height);
 
 ctx.fillStyle="#111";
-ctx.font="bold 22px Arial";
-ctx.fillText("⛈️ Risque orageux",70,40);
+ctx.font="600 18px Arial";
+ctx.fillText("⛈️ Risque orageux",78,38);
 
-ctx.font="14px Arial";
-ctx.fillStyle="#444";
-ctx.fillText(formatDateFR(date),70,65);
+ctx.font="12px Arial";
+ctx.fillStyle="#555";
+ctx.fillText(formatDateFR(date),78,58);
 
 ctx.fillStyle="#999";
-ctx.font="11px Arial";
-ctx.fillText("MeteoAveyron • Bulletin trois jours",70,85);
+ctx.font="10px Arial";
+ctx.fillText("MeteoAveyron • Bulletin trois jours",78,76);
 
-drawBar(ctx,40,140,260,26,orages,"Orages","☈");
-drawBar(ctx,40,220,260,26,grele,"Grêle","☄");
-drawBar(ctx,40,300,260,26,vent,"Vent violent","༄");
+drawBar(ctx,45,135,245,16,orages,"Orages","☈");
+drawBar(ctx,45,205,245,16,grele,"Grêle","☄");
+drawBar(ctx,45,275,245,16,vent,"Vent violent","༄");
 
 ctx.fillStyle=getColor(risk);
-ctx.fillRect(40,390,260,60);
+ctx.fillRect(45,365,245,42);
 
 ctx.fillStyle="white";
-ctx.font="bold 22px Arial";
-ctx.fillText("Risque global : "+risk+"%",55,425);
+ctx.font="600 15px Arial";
+ctx.fillText("Risque global : "+risk+"%",58,388);
 
-ctx.font="bold 14px Arial";
-ctx.fillText(getRiskText(risk),55,445);
+ctx.font="12px Arial";
+ctx.fillText(getRiskText(risk),58,404);
 
 ctx.strokeStyle="#ddd";
+ctx.lineWidth=1;
 ctx.strokeRect(0,0,c.width,c.height);
 
 }
@@ -214,7 +216,7 @@ const c = document.getElementById("canvas"+id);
 ctx.drawImage(c, i*380 + 5, 40);
 
 ctx.fillStyle="black";
-ctx.font="bold 18px Arial";
+ctx.font="600 16px Arial";
 ctx.textAlign="center";
 ctx.fillText("J+"+id, i*380 + 180, 25);
 
